@@ -10,6 +10,7 @@ public class GameControl : MonoBehaviour
     public static GameControl instance;
     public GameObject gameOverText;
     public GameObject winText;
+    public GameObject pauseScreen;
 
     //Player States
     public bool grounded = false;
@@ -44,6 +45,9 @@ public class GameControl : MonoBehaviour
         if (gameOver == true && Input.GetButton("Fire2")){
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+            pauseScreen.SetActive(!pauseScreen.activeSelf);
     }
 
     public void PlayerDied(){
