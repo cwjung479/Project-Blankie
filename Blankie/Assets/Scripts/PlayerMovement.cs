@@ -25,6 +25,9 @@ public class PlayerMovement : MonoBehaviour
     public float maxDist = 5f;
     public LayerMask grappleMask;
 
+    public GameObject whip;
+    private Collider2D whipCollider;
+
     void Start()
     {
         gamecontroller = GameControl.instance;
@@ -35,6 +38,9 @@ public class PlayerMovement : MonoBehaviour
         dj = GetComponent<DistanceJoint2D>();
         ropeRenderer = GetComponent<LineRenderer>();
         dj.enabled = false;
+
+        whip = GameObject.FindWithTag("Whip"); //gets whip object
+        whipCollider = whip.GetComponent<Collider2D>();
     }
 
     // Update is called once per frame
@@ -106,15 +112,37 @@ public class PlayerMovement : MonoBehaviour
             gamecontroller.grappling = false;
         }
 
+		//Whipping
+		if(Input.GetMouseButtonDown(1)){
+            gamecontroller.whipping = true;
+            StartCoroutine(whipActive());
+            
+        }
+        if (!gamecontroller.whipping)
+        {
+            whipCollider.enabled = false;
+        }
+
         //Animations
-        if(gamecontroller.crouch)
+        if (gamecontroller.crouch)
             anim.SetTrigger("crawl");
-        else if(gamecontroller.jump)
+        else if (gamecontroller.jump)
             anim.SetTrigger("jump");
-        else if(gamecontroller.floating)
+        else if (gamecontroller.floating)
             anim.SetTrigger("floatInAir");
+        else if (gamecontroller.whipping)
+        {
+            anim.SetTrigger("whipping");
+        }
         else
             anim.SetTrigger("run");
+    }
+
+    private IEnumerator whipActive()
+    {
+        whipCollider.enabled = true;
+        yield return new WaitForSeconds(.5f);
+        gamecontroller.whipping = false;
     }
 
     private void FixedUpdate(){

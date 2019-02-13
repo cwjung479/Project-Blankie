@@ -21,6 +21,7 @@ public class GameControl : MonoBehaviour
     public bool grappling = false;
     public bool letGo = false;
     public bool colliding = false;
+    public bool whipping = false;
 
     //Camera Controls
     public float cameraX = 5f;

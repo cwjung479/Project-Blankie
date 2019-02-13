@@ -13,6 +13,7 @@ public class SetFlag : MonoBehaviour
     void Start()
     {
         flagRenderer = flag.GetComponent<SpriteRenderer>();
+		//bubbleRenderer = flag.GetComponent<SpriteRenderer>();
     }
 
     void OnTriggerEnter2D(Collider2D col)
@@ -20,7 +21,7 @@ public class SetFlag : MonoBehaviour
         if (col.tag == "flag")
         {
             flagRenderer.sprite = victoryFlag;
-            bubbleRenderer.sprite = dreamBubble;
+            //bubbleRenderer.sprite = dreamBubble;
         }
     }
 }

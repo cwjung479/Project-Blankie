@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.Events;
+using System.Collections;
 
 public class CharacterController2D : MonoBehaviour
 {
     public PlayerMovement playerMovement;
+    public GameObject HUD;
 
     [SerializeField] private float m_JumpForce = 400f;							// Amount of force added when the player jumps.
 	[Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;			// Amount of maxSpeed applied to crouching movement. 1 = 100%
@@ -41,8 +43,10 @@ public class CharacterController2D : MonoBehaviour
 	{
         gamecontroller = GameControl.instance;
 		m_Rigidbody2D = GetComponent<Rigidbody2D>();
+        HUD = GameObject.Find("HUD");
 
-		if (OnLandEvent == null)
+
+        if (OnLandEvent == null)
 			OnLandEvent = new UnityEvent();
 
 		if (OnCrouchEvent == null)
@@ -69,44 +73,44 @@ public class CharacterController2D : MonoBehaviour
 	}
 
 
-	public void Move(float move)
-	{
-		// If crouching, check to see if the character can stand up
-		if (!gamecontroller.crouch)
+    public void Move(float move)
+    {
+        // If crouching, check to see if the character can stand up
+        if (!gamecontroller.crouch)
             gamecontroller.colliding = checkCeilingCollider();
 
         //only control the player if grounded or airControl is turned on
         if (gamecontroller.grounded || m_AirControl)
-		{
+        {
 
-			// If crouching
-			if (gamecontroller.crouch)
+            // If crouching
+            if (gamecontroller.crouch)
             {
-				if (!m_wasCrouching)
-				{
-					m_wasCrouching = true;
-					OnCrouchEvent.Invoke(true);
-				}
+                if (!m_wasCrouching)
+                {
+                    m_wasCrouching = true;
+                    OnCrouchEvent.Invoke(true);
+                }
 
-				// Reduce the speed by the crouchSpeed multiplier
-				move *= m_CrouchSpeed;
+                // Reduce the speed by the crouchSpeed multiplier
+                move *= m_CrouchSpeed;
 
-				// Disable one of the colliders when crouching
-				if (m_CrouchDisableCollider != null)
-					m_CrouchDisableCollider.enabled = false;
-			}
+                // Disable one of the colliders when crouching
+                if (m_CrouchDisableCollider != null)
+                    m_CrouchDisableCollider.enabled = false;
+            }
             else
-			{
-				// Enable the collider when not crouching
-				if (m_CrouchDisableCollider != null)
-					m_CrouchDisableCollider.enabled = true;
+            {
+                // Enable the collider when not crouching
+                if (m_CrouchDisableCollider != null)
+                    m_CrouchDisableCollider.enabled = true;
 
-				if (m_wasCrouching)
-				{
-					m_wasCrouching = false;
-					OnCrouchEvent.Invoke(false);
-				}
-			}
+                if (m_wasCrouching)
+                {
+                    m_wasCrouching = false;
+                    OnCrouchEvent.Invoke(false);
+                }
+            }
 
             if (!gamecontroller.grappling && !gamecontroller.letGo)
             {
@@ -115,7 +119,7 @@ public class CharacterController2D : MonoBehaviour
                 // And then smoothing it out and applying it to the character
                 m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref m_Velocity, m_MovementSmoothing);
             }
-            else if(!gamecontroller.grappling)
+            else if (!gamecontroller.grappling)
             {
                 Vector3 targetVelocity = new Vector2(move * 10f, m_Rigidbody2D.velocity.y);
                 current_Velocity = m_Rigidbody2D.velocity;
@@ -126,27 +130,30 @@ public class CharacterController2D : MonoBehaviour
 
             // If the input is moving the player right and the player is facing left...
             if (move > 0 && !m_FacingRight)
-			{
-				// ... flip the player.
-				Flip();
-			}
-			// Otherwise if the input is moving the player left and the player is facing right...
-			else if (move < 0 && m_FacingRight)
-			{
-				// ... flip the player.
-				Flip();
-			}
-		}
+            {
+                // ... flip the player.
+                Flip();
+            }
+            // Otherwise if the input is moving the player left and the player is facing right...
+            else if (move < 0 && m_FacingRight)
+            {
+                // ... flip the player.
+                Flip();
+            }
+        }
 
-		// If the player should jump...
-		if (gamecontroller.grounded && gamecontroller.jump && !gamecontroller.colliding)
-		{
+        // If the player should jump...
+        if (gamecontroller.grounded && gamecontroller.jump && !gamecontroller.colliding)
+        {
             // Add a vertical force to the player.
             gamecontroller.grounded = false;
 
             m_Rigidbody2D.AddForce(new Vector2(0f, m_JumpForce));
         }
-	}
+
+      
+    }
+
 
 
 	private void Flip()
@@ -166,6 +173,7 @@ public class CharacterController2D : MonoBehaviour
         {
             transform.position = lastCP.transform.position;
             GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            HUD.GetComponent<UIKeys>().lostLife();
         }
         else if (collision.CompareTag("Checkpoint"))
             lastCP = collision.gameObject;
