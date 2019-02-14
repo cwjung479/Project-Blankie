@@ -49,10 +49,10 @@ public class PlatformEnemyMovement : MonoBehaviour
             direction = 1;
     }
 
-    void OnCollisionEnter2D(Collision2D col)
+    /*void OnCollisionEnter2D(Collision2D col)
     {
         if (col.gameObject.CompareTag("Player"))
             Destroy(col.gameObject, 0);
-    }
+    }*/
 
 }

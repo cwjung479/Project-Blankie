@@ -1248,7 +1248,7 @@ SpriteRenderer:
   m_Size: {x: 0.5, y: 0.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!4 &183182660
@@ -1985,7 +1985,7 @@ MonoBehaviour:
   target: {fileID: 183182661}
   focusAreaSize: {x: 1.25, y: 1}
   lookAheadDstX: 4
-  lookSmoothTimeX: 0.5
+  lookSmoothTimeX: 2
   verticalSmoothTime: 0.5
   verticalOffset: 0
 --- !u!20 &519420031
@@ -3199,7 +3199,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!212 &1010739822
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -6102,10 +6102,10 @@ MonoBehaviour:
   m_Script: {fileID: 1980459831, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -6388,6 +6388,16 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Coin
       objectReference: {fileID: 0}
+    - target: {fileID: 9142142088653352101, guid: 3816e523c8e0322498010be80f5d5de1,
+        type: 3}
+      propertyPath: whip
+      value: 
+      objectReference: {fileID: 859553884}
+    - target: {fileID: 9142142088653352101, guid: 3816e523c8e0322498010be80f5d5de1,
+        type: 3}
+      propertyPath: scoreText
+      value: 
+      objectReference: {fileID: 727993920}
     - target: {fileID: 9142142088653352103, guid: 3816e523c8e0322498010be80f5d5de1,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -6443,15 +6453,5 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 9142142088653352101, guid: 3816e523c8e0322498010be80f5d5de1,
-        type: 3}
-      propertyPath: whip
-      value: 
-      objectReference: {fileID: 859553884}
-    - target: {fileID: 9142142088653352101, guid: 3816e523c8e0322498010be80f5d5de1,
-        type: 3}
-      propertyPath: scoreText
-      value: 
-      objectReference: {fileID: 727993920}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3816e523c8e0322498010be80f5d5de1, type: 3}

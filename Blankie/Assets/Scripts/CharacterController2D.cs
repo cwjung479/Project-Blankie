@@ -167,6 +167,7 @@ public class CharacterController2D : MonoBehaviour
 		transform.localScale = theScale;
 	}
 
+    // Player collides with a trigger collider, meaning a deadzone or a checkpoint
     void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("DeadZone"))
@@ -179,11 +180,21 @@ public class CharacterController2D : MonoBehaviour
             lastCP = collision.gameObject;
     }
 
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            transform.position = lastCP.transform.position;
+            GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            HUD.GetComponent<UIKeys>().lostLife();
+        }
+    }
+
     bool checkCeilingCollider ()
     {
         var ceilingCollider = Physics2D.OverlapCircle(m_CeilingCheck.position, k_CeilingRadius, m_WhatIsGround);
         // If the character has a ceiling preventing them from standing up, keep them crouching
-        if (ceilingCollider && !ceilingCollider.CompareTag("Checkpoint"))
+        if (ceilingCollider && !ceilingCollider.CompareTag("Checkpoint") && !ceilingCollider.CompareTag("flag"))
             gamecontroller.crouch = true;
         else
             gamecontroller.crouch = false;
