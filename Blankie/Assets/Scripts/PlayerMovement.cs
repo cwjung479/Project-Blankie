@@ -19,14 +19,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb2d;
     private GameControl gamecontroller;
 
-    //grapple values
-    private LineRenderer ropeRenderer;
-    private DistanceJoint2D dj;
-    public float maxDist = 5f;
-    public LayerMask grappleMask;
-
-    public GameObject whip;
-    private Collider2D whipCollider;
+    private GameObject pauseMenu;
 
     void Start()
     {
@@ -35,12 +28,8 @@ public class PlayerMovement : MonoBehaviour
         rb2d = GetComponent<Rigidbody2D>();
         rb2d.bodyType = RigidbodyType2D.Dynamic;
 
-        dj = GetComponent<DistanceJoint2D>();
-        ropeRenderer = GetComponent<LineRenderer>();
-        dj.enabled = false;
-
-        whip = GameObject.FindWithTag("Whip"); //gets whip object
-        whipCollider = whip.GetComponent<Collider2D>();
+        pauseMenu = GameObject.Find("/Canvas");
+        pauseMenu.SetActive(false);
     }
 
     // Update is called once per frame
@@ -101,26 +90,19 @@ public class PlayerMovement : MonoBehaviour
         //Grappling
         if (Input.GetMouseButtonDown(0))
         {
-            shootRope();
-            gamecontroller.crouch = false;
-            gamecontroller.jump = false;
-            gamecontroller.floating = false;
+            // Do nothing if the pause menu is open
+            if (!pauseMenu.activeSelf)
+            {
+                controller.shootRope();
+                gamecontroller.crouch = false;
+                gamecontroller.jump = false;
+                gamecontroller.floating = false;
+            }
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            releaseRope();
+            controller.releaseRope();
             gamecontroller.grappling = false;
-        }
-
-		//Whipping
-		if(Input.GetMouseButtonDown(1)){
-            gamecontroller.whipping = true;
-            StartCoroutine(whipActive());
-            
-        }
-        if (!gamecontroller.whipping)
-        {
-            whipCollider.enabled = false;
         }
 
         //Animations
@@ -131,69 +113,16 @@ public class PlayerMovement : MonoBehaviour
         else if (gamecontroller.floating)
             anim.SetTrigger("floatInAir");
         else if (gamecontroller.whipping)
-        {
             anim.SetTrigger("whipping");
-        }
+        else if (gamecontroller.grappling)
+            anim.SetTrigger("grapple");
         else
             anim.SetTrigger("run");
-    }
-
-    private IEnumerator whipActive()
-    {
-        whipCollider.enabled = true;
-        yield return new WaitForSeconds(.5f);
-        gamecontroller.whipping = false;
     }
 
     private void FixedUpdate(){
         // Move Character
         controller.Move(horizontalMove * Time.fixedDeltaTime);
         gamecontroller.jump = false;
-
-        if (gamecontroller.grappling)
-            updateRopePositions(ropeRenderer.GetPosition(1));
-    }
-
-    void shootRope()
-    {
-        var worldMousePosition =
-            Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f));
-        var facingDirection = worldMousePosition - transform.position;
-        var angle = Mathf.Atan2(facingDirection.y, facingDirection.x);
-        var aimDirection = Quaternion.Euler(0, 0, angle * Mathf.Rad2Deg) * Vector2.right;
-
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, aimDirection, maxDist + 1, grappleMask);
-
-        if (hit.collider != null)
-        {
-            gamecontroller.grappling = true;
-            Debug.Log("Hit something");
-            anim.SetTrigger("grapple");
-            ropeRenderer.enabled = true;
-            ropeRenderer.positionCount = 2;
-            updateRopePositions(hit.point);
-            dj.enabled = true;
-            dj.connectedAnchor = hit.point;
-            dj.anchor = Vector2.zero;
-            dj.distance = maxDist;
-        }
-        else
-            Debug.Log("didnt hit");
-    }
-
-    void updateRopePositions(Vector3 position)
-    {
-        float xDist = position.x - transform.position.x;
-        float yDist = position.y - transform.position.y;
-
-        ropeRenderer.SetPosition(0, transform.position);
-        ropeRenderer.SetPosition(1, position);
-    }
-
-    void releaseRope()
-    {
-        gamecontroller.letGo = true;
-        ropeRenderer.enabled = false;
-        dj.enabled = false;
     }
 }

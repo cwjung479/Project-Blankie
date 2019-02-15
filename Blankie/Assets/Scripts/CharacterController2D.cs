@@ -39,6 +39,16 @@ public class CharacterController2D : MonoBehaviour
 
     private GameObject lastCP;
 
+    // Blanket things: for whipping and swinging
+    private LineRenderer ropeRenderer;
+    private DistanceJoint2D dj;
+    public float maxDist = 5f;
+    [SerializeField] public LayerMask blanketMask;
+
+    // Necessary for generating the coin upon killing an enemy
+    public PickUpCoin coinPrefab;
+    PickUpCoin coin = null;
+
     private void Awake()
 	{
         gamecontroller = GameControl.instance;
@@ -51,7 +61,11 @@ public class CharacterController2D : MonoBehaviour
 
 		if (OnCrouchEvent == null)
 			OnCrouchEvent = new BoolEvent();
-	}
+
+        dj = GetComponent<DistanceJoint2D>();
+        ropeRenderer = GetComponent<LineRenderer>();
+        dj.enabled = false;
+    }
 
 	private void FixedUpdate()
 	{
@@ -70,7 +84,10 @@ public class CharacterController2D : MonoBehaviour
 					OnLandEvent.Invoke();
 			}
 		}
-	}
+
+        if (gamecontroller.grappling)
+            updateRopePositions(ropeRenderer.GetPosition(1));
+    }
 
 
     public void Move(float move)
@@ -167,7 +184,10 @@ public class CharacterController2D : MonoBehaviour
 		transform.localScale = theScale;
 	}
 
-    // Player collides with a trigger collider, meaning a deadzone or a checkpoint
+    // Cristian Rangel
+    //
+    // If player collides with a deadzone, respawn
+    // If player collides with a checkpoint, set that as the last checkpoint
     void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("DeadZone"))
@@ -180,6 +200,9 @@ public class CharacterController2D : MonoBehaviour
             lastCP = collision.gameObject;
     }
 
+    // Cristian Rangel
+    //
+    // If player collides with an enemy, respawn
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Enemy"))
@@ -190,6 +213,12 @@ public class CharacterController2D : MonoBehaviour
         }
     }
 
+    // Chanye Jung
+    //
+    // Function to check if the player would normally collide with a ceiling
+    //
+    // @return bool - true if a standing player would collide with the ceiling,
+    //   false if not
     bool checkCeilingCollider ()
     {
         var ceilingCollider = Physics2D.OverlapCircle(m_CeilingCheck.position, k_CeilingRadius, m_WhatIsGround);
@@ -199,5 +228,116 @@ public class CharacterController2D : MonoBehaviour
         else
             gamecontroller.crouch = false;
         return gamecontroller.crouch;
+    }
+
+    // Isaac Hintergardt and Cristian Rangel
+    //
+    // Function to determine if the player has hit a grapple point or enemy
+    //   and act accordingly
+    public void shootRope()
+    {
+        var worldMousePosition =
+            Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f));
+        var facingDirection = worldMousePosition - transform.position;
+        var angle = Mathf.Atan2(facingDirection.y, facingDirection.x);
+        var aimDirection = Quaternion.Euler(0, 0, angle * Mathf.Rad2Deg) * Vector2.right;
+
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, aimDirection, maxDist + 1, blanketMask);
+        
+        ropeRenderer.enabled = true;
+        ropeRenderer.positionCount = 2;
+
+        // If it hit a grapple or enemy
+        if (hit.collider != null)
+        {
+            updateRopePositions(hit.point);
+            // Player hit grapple
+            if (hit.collider.gameObject.CompareTag("grappleObject"))
+            {
+                gamecontroller.grappling = true;
+                dj.enabled = true;
+                dj.connectedAnchor = hit.point;
+                dj.anchor = Vector2.zero;
+                dj.distance = maxDist;
+            }
+            // Player hit enemy
+            else
+            {
+                var enemy = hit.collider.gameObject;
+                enemy.SetActive(false);
+                createPickUp(enemy.transform.position);
+
+            }
+        }
+        // If the player just clicked on the screen randomly
+        else
+        {
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            float rayDistance;
+            if (new Plane(Vector3.forward, Vector3.zero).Raycast(ray, out rayDistance))
+            {
+                Vector3 pos = transform.position;
+                Vector3 rayPoint = ray.GetPoint(rayDistance);
+                rayPoint.z = 0;
+
+                hit = Physics2D.Raycast(transform.position, aimDirection, maxDist, LayerMask.GetMask("Ground"));
+                if (hit.collider != null)
+                {
+                    rayPoint = hit.point;
+                }
+                else
+                {
+                    // Reduce line length by the correct ratio to maintain the same slope
+                    float numer = ((rayPoint - pos).normalized.y) / 2;
+                    float denom = ((rayPoint - pos).normalized.x) / 2;
+
+                    // While the line is too long, reduce it
+                    while (Vector3.Distance(rayPoint, pos) > maxDist)
+                    {
+                        rayPoint.y -= numer;
+                        rayPoint.x -= denom;
+                    }
+                }
+                updateRopePositions(rayPoint);
+            }
+        }
+    }
+
+    // Isaac Hintergardt and Cristian Rangel
+    //
+    // Function to handle the rope cleanup
+    public void releaseRope()
+    {
+        gamecontroller.letGo = true;
+        ropeRenderer.enabled = false;
+        dj.enabled = false;
+    }
+
+    // Isaac Hintergardt and Cristian Rangel
+    //
+    // Function to re-render the line to ensure it's between the player
+    //   and grapple point at all times
+    //
+    // @param Vector3 position - Position of the second point of the rope,
+    //   with the first being centered on the player
+    void updateRopePositions(Vector3 position)
+    {
+        float xDist = position.x - transform.position.x;
+        float yDist = position.y - transform.position.y;
+
+        ropeRenderer.SetPosition(0, transform.position);
+        ropeRenderer.SetPosition(1, position);
+    }
+
+    // Bonita Galvan
+    //
+    // Function to generate a coin prefab in the place of an enemy death
+    //
+    // @param Vecetor3 enemyPos - The position of the enemy that died
+    public void createPickUp(Vector3 enemyPos)
+    {
+        coin = Instantiate(coinPrefab);
+        coin.transform.position = enemyPos;
     }
 }

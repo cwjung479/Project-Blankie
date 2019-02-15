@@ -48,11 +48,4 @@ public class PlatformEnemyMovement : MonoBehaviour
         else if (rb2d.transform.position.x <= leftBoundary)
             direction = 1;
     }
-
-    /*void OnCollisionEnter2D(Collision2D col)
-    {
-        if (col.gameObject.CompareTag("Player"))
-            Destroy(col.gameObject, 0);
-    }*/
-
 }
