@@ -14,12 +14,12 @@ public class PlatformEnemyMovement : MonoBehaviour
     public Transform leftBoundaryObject;
     public Transform rightBoundaryObject;
 
+    private float leftBoundary;
+    private float rightBoundary;
+
     // -1 for to the left, 1 for to the right
     private int direction;
     private Rigidbody2D rb2d;
-
-    private float leftBoundary;
-    private float rightBoundary;
 
     void Start()
     {

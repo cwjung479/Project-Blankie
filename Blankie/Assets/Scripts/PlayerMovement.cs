@@ -15,6 +15,7 @@ public class PlayerMovement : MonoBehaviour
     private float defaultGravity = 3f;
 
     private float horizontalMove = 0f;
+    private float verticalMove = 0f;
     private float timePressed = 0f;
     private Rigidbody2D rb2d;
     private GameControl gamecontroller;
@@ -35,6 +36,7 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update(){
         horizontalMove = Input.GetAxisRaw("Horizontal") * runSpeed;
+        verticalMove = Input.GetAxisRaw("Vertical") * runSpeed / 2;
 
         //While in the air
         if (!gamecontroller.grounded)
@@ -47,7 +49,10 @@ public class PlayerMovement : MonoBehaviour
             rb2d.gravityScale = defaultGravity;
         }
 
-        if (Input.GetButtonDown("Jump") && !gamecontroller.grappling && !gamecontroller.colliding && GameControl.instance.grounded)
+        if (Input.GetButtonDown("Jump") &&
+             !gamecontroller.grappling &&
+             !gamecontroller.hittingCeiling &&
+             (gamecontroller.grounded || gamecontroller.climbing))
         {
             gamecontroller.jump = true;
             gamecontroller.crouch = false;
@@ -61,7 +66,7 @@ public class PlayerMovement : MonoBehaviour
 
 
         //Jump and Float
-        if (Input.GetButton("Jump") && !gamecontroller.grappling && !gamecontroller.colliding)
+        if (Input.GetButton("Jump") && !gamecontroller.grappling && !gamecontroller.hittingCeiling)
         {
             if (rb2d.velocity.y < -0.1f && !gamecontroller.grappling)
             {
@@ -93,16 +98,18 @@ public class PlayerMovement : MonoBehaviour
             // Do nothing if the pause menu is open
             if (!pauseMenu.activeSelf)
             {
-                controller.shootRope();
                 gamecontroller.crouch = false;
                 gamecontroller.jump = false;
                 gamecontroller.floating = false;
+                gamecontroller.clicking = true;
+                controller.shootRope();
             }
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            controller.releaseRope();
             gamecontroller.grappling = false;
+            gamecontroller.clicking = false;
+            controller.releaseRope();
         }
 
         //Animations
@@ -122,7 +129,30 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate(){
         // Move Character
-        controller.Move(horizontalMove * Time.fixedDeltaTime);
+        if (!gamecontroller.climbing)
+        {
+            rb2d.gravityScale = defaultGravity;
+            controller.Move(horizontalMove * Time.fixedDeltaTime, 0);
+        } else
+        {
+            rb2d.gravityScale = 0;
+            controller.Move(horizontalMove * Time.fixedDeltaTime, verticalMove * Time.fixedDeltaTime);
+        }
         gamecontroller.jump = false;
+    }
+
+    // Cristian Rangel
+    //
+    // If player leaves the ladder, they stop climbing
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Interactable"))
+        {
+            if (rb2d.velocity.y > runSpeed)
+            {
+                rb2d.velocity = new Vector2(rb2d.velocity.x, runSpeed / 2);
+            }
+            gamecontroller.climbing = false;
+        }
     }
 }

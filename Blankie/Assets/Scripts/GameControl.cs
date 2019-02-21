@@ -20,8 +20,10 @@ public class GameControl : MonoBehaviour
     public bool crouch = false;
     public bool grappling = false;
     public bool letGo = false;
-    public bool colliding = false;
+    public bool hittingCeiling = false;
+    public bool climbing = false;
     public bool whipping = false;
+    public bool clicking = false;
 
     //Camera Controls
     public float cameraX = 5f;

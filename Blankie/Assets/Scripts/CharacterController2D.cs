@@ -37,7 +37,10 @@ public class CharacterController2D : MonoBehaviour
 
     private int direction;
 
+    // Checkpoint and door activator things
+    // doorIDs keeps track of opener in 0 and closer in 1
     private GameObject lastCP;
+    private ActivatorPoint[] lastActivators;
 
     // Blanket things: for whipping and swinging
     private LineRenderer ropeRenderer;
@@ -49,6 +52,7 @@ public class CharacterController2D : MonoBehaviour
     public PickUpCoin coinPrefab;
     PickUpCoin coin = null;
 
+    // Chanye Jung, Isaac Hintergardt, Cristian Rangel
     private void Awake()
 	{
         gamecontroller = GameControl.instance;
@@ -61,12 +65,15 @@ public class CharacterController2D : MonoBehaviour
 
 		if (OnCrouchEvent == null)
 			OnCrouchEvent = new BoolEvent();
-
+        
         dj = GetComponent<DistanceJoint2D>();
         ropeRenderer = GetComponent<LineRenderer>();
         dj.enabled = false;
+
+        lastActivators = new ActivatorPoint[2];
     }
 
+    // Chanye Jung, Isaac Hintergardt, Cristian Rangel
 	private void FixedUpdate()
 	{
 		bool wasGrounded = gamecontroller.grounded;
@@ -85,19 +92,21 @@ public class CharacterController2D : MonoBehaviour
 			}
 		}
 
-        if (gamecontroller.grappling)
+        if (gamecontroller.clicking)
             updateRopePositions(ropeRenderer.GetPosition(1));
     }
 
-
-    public void Move(float move)
+    // Chanye Jung, Isaac Hintergardt, Cristian Rangel
+    //
+    // Player movement logic
+    public void Move(float xmove, float ymove)
     {
         // If crouching, check to see if the character can stand up
         if (!gamecontroller.crouch)
-            gamecontroller.colliding = checkCeilingCollider();
+            checkCeilingCollider();
 
-        //only control the player if grounded or airControl is turned on
-        if (gamecontroller.grounded || m_AirControl)
+        // Only control the player if grounded, airControl is turned on, or player is climbing
+        if (gamecontroller.grounded || m_AirControl || gamecontroller.climbing)
         {
 
             // If crouching
@@ -110,7 +119,7 @@ public class CharacterController2D : MonoBehaviour
                 }
 
                 // Reduce the speed by the crouchSpeed multiplier
-                move *= m_CrouchSpeed;
+                xmove *= m_CrouchSpeed;
 
                 // Disable one of the colliders when crouching
                 if (m_CrouchDisableCollider != null)
@@ -129,30 +138,36 @@ public class CharacterController2D : MonoBehaviour
                 }
             }
 
-            if (!gamecontroller.grappling && !gamecontroller.letGo)
+            if (!gamecontroller.climbing)
+                if (!gamecontroller.grappling && !gamecontroller.letGo)
+                {
+                    // Move the character by finding the target velocity
+                    Vector3 targetVelocity = new Vector2(xmove * 10f, m_Rigidbody2D.velocity.y);
+                    // And then smoothing it out and applying it to the character
+                    m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref m_Velocity, m_MovementSmoothing);
+                }
+                else if (!gamecontroller.grappling)
+                {
+                    Vector3 targetVelocity = new Vector2(xmove * 10f, m_Rigidbody2D.velocity.y);
+                    current_Velocity = m_Rigidbody2D.velocity;
+                    m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref current_Velocity, m_MovementSmoothing);
+                }
+                else
+                    m_Rigidbody2D.AddForce(new Vector2(xmove * 10, 0));
+            else
             {
-                // Move the character by finding the target velocity
-                Vector3 targetVelocity = new Vector2(move * 10f, m_Rigidbody2D.velocity.y);
-                // And then smoothing it out and applying it to the character
+                Vector3 targetVelocity = new Vector2(xmove * 10f, ymove * 10f);
                 m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref m_Velocity, m_MovementSmoothing);
             }
-            else if (!gamecontroller.grappling)
-            {
-                Vector3 targetVelocity = new Vector2(move * 10f, m_Rigidbody2D.velocity.y);
-                current_Velocity = m_Rigidbody2D.velocity;
-                m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref current_Velocity, m_MovementSmoothing);
-            }
-            else
-                m_Rigidbody2D.AddForce(new Vector2(move * 10, 0));
 
             // If the input is moving the player right and the player is facing left...
-            if (move > 0 && !m_FacingRight)
+            if (xmove > 0 && !m_FacingRight)
             {
                 // ... flip the player.
                 Flip();
             }
             // Otherwise if the input is moving the player left and the player is facing right...
-            else if (move < 0 && m_FacingRight)
+            else if (xmove < 0 && m_FacingRight)
             {
                 // ... flip the player.
                 Flip();
@@ -160,19 +175,21 @@ public class CharacterController2D : MonoBehaviour
         }
 
         // If the player should jump...
-        if (gamecontroller.grounded && gamecontroller.jump && !gamecontroller.colliding)
+        if ((gamecontroller.grounded || gamecontroller.climbing) &&
+             gamecontroller.jump &&
+             !gamecontroller.hittingCeiling)
         {
             // Add a vertical force to the player.
             gamecontroller.grounded = false;
 
-            m_Rigidbody2D.AddForce(new Vector2(0f, m_JumpForce));
+            m_Rigidbody2D.AddForce(new Vector2(0f, gamecontroller.climbing? m_JumpForce * 1.2f : m_JumpForce));
         }
-
-      
     }
 
 
-
+    // Chanye Jung
+    // 
+    // Change the direction the player is facing
 	private void Flip()
 	{
 		// Switch the way the player is labelled as facing.
@@ -186,8 +203,10 @@ public class CharacterController2D : MonoBehaviour
 
     // Cristian Rangel
     //
-    // If player collides with a deadzone, respawn
-    // If player collides with a checkpoint, set that as the last checkpoint
+    // If player touches a deadzone, respawn at last checkpoint
+    // If player touches a checkpoint, set that as the last checkpoint
+    // If player touches an activatorPoint, save those as the last touched
+    // If player touches a ladder, set player as climbing
     void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("DeadZone"))
@@ -195,9 +214,17 @@ public class CharacterController2D : MonoBehaviour
             transform.position = lastCP.transform.position;
             GetComponent<Rigidbody2D>().velocity = Vector2.zero;
             HUD.GetComponent<UIKeys>().lostLife();
-        }
-        else if (collision.CompareTag("Checkpoint"))
+        } else if (collision.CompareTag("Checkpoint")) {
             lastCP = collision.gameObject;
+        } else if (collision.CompareTag("DoorActivator")) {
+            var da = collision.gameObject.GetComponent<ActivatorPoint>();
+            if (da.activator)
+                lastActivators[0] = da;
+            else
+                lastActivators[1] = da;
+        } else if (collision.CompareTag("Interactable")) {
+            gamecontroller.climbing = true;
+        }
     }
 
     // Cristian Rangel
@@ -217,20 +244,17 @@ public class CharacterController2D : MonoBehaviour
     //
     // Function to check if the player would normally collide with a ceiling
     //
-    // @return bool - true if a standing player would collide with the ceiling,
-    //   false if not
-    bool checkCeilingCollider ()
+    // Checks if a standing player would collide with the ceiling
+    void checkCeilingCollider ()
     {
         var ceilingCollider = Physics2D.OverlapCircle(m_CeilingCheck.position, k_CeilingRadius, m_WhatIsGround);
         // If the character has a ceiling preventing them from standing up, keep them crouching
-        if (ceilingCollider && !ceilingCollider.CompareTag("Checkpoint") && !ceilingCollider.CompareTag("flag"))
-            gamecontroller.crouch = true;
-        else
-            gamecontroller.crouch = false;
-        return gamecontroller.crouch;
+        gamecontroller.hittingCeiling = gamecontroller.crouch =
+            (ceilingCollider && !ceilingCollider.CompareTag("Checkpoint") &&
+              !ceilingCollider.CompareTag("flag") && gamecontroller.grounded);
     }
 
-    // Isaac Hintergardt and Cristian Rangel
+    // Isaac Hintergardt, Cristian Rangel
     //
     // Function to determine if the player has hit a grapple point or enemy
     //   and act accordingly
@@ -252,13 +276,20 @@ public class CharacterController2D : MonoBehaviour
         {
             updateRopePositions(hit.point);
             // Player hit grapple
-            if (hit.collider.gameObject.CompareTag("grappleObject"))
+            if (hit.collider.CompareTag("grappleObject"))
             {
                 gamecontroller.grappling = true;
                 dj.enabled = true;
                 dj.connectedAnchor = hit.point;
                 dj.anchor = Vector2.zero;
-                dj.distance = maxDist;
+                //dj.distance = maxDist;
+                dj.distance = Vector2.Distance(hit.point, transform.position);
+            }
+            // Player hit chest
+            else if (hit.collider.CompareTag("Interactable")) {
+                var chest = hit.collider.gameObject;
+                chest.SetActive(false);
+                createPickUp(chest.transform.position);
             }
             // Player hit enemy
             else
@@ -266,7 +297,8 @@ public class CharacterController2D : MonoBehaviour
                 var enemy = hit.collider.gameObject;
                 enemy.SetActive(false);
                 createPickUp(enemy.transform.position);
-
+                lastActivators[0].deactivate();
+                lastActivators[1].deactivate();
             }
         }
         // If the player just clicked on the screen randomly
@@ -304,7 +336,7 @@ public class CharacterController2D : MonoBehaviour
         }
     }
 
-    // Isaac Hintergardt and Cristian Rangel
+    // Isaac Hintergardt, Cristian Rangel
     //
     // Function to handle the rope cleanup
     public void releaseRope()
@@ -314,7 +346,7 @@ public class CharacterController2D : MonoBehaviour
         dj.enabled = false;
     }
 
-    // Isaac Hintergardt and Cristian Rangel
+    // Isaac Hintergardt, Cristian Rangel
     //
     // Function to re-render the line to ensure it's between the player
     //   and grapple point at all times
