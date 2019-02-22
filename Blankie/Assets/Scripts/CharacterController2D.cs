@@ -105,6 +105,9 @@ public class CharacterController2D : MonoBehaviour
         if (!gamecontroller.crouch)
             checkCeilingCollider();
 
+        if (!gamecontroller.crouch || gamecontroller.hittingCeiling)
+            checkCeilingCollider();
+
         // Only control the player if grounded, airControl is turned on, or player is climbing
         if (gamecontroller.grounded || m_AirControl || gamecontroller.climbing)
         {

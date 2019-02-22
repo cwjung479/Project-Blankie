@@ -49,6 +49,8 @@ public class PlayerMovement : MonoBehaviour
             rb2d.gravityScale = defaultGravity;
         }
 
+
+        //Jump
         if (Input.GetButtonDown("Jump") &&
              !gamecontroller.grappling &&
              !gamecontroller.hittingCeiling &&
@@ -61,14 +63,15 @@ public class PlayerMovement : MonoBehaviour
         else if (Input.GetButtonUp("Jump"))
         {
             gamecontroller.jump = false;
-            rb2d.gravityScale = defaultGravity;
         }
 
 
-        //Jump and Float
-        if (Input.GetButton("Jump") && !gamecontroller.grappling && !gamecontroller.hittingCeiling)
+        //Float
+        if (Input.GetButton("Jump") && 
+            !gamecontroller.grappling && 
+            !gamecontroller.grounded)
         {
-            if (rb2d.velocity.y < -0.1f && !gamecontroller.grappling)
+            if (rb2d.velocity.y < -0.1f)
             {
                 gamecontroller.crouch = false;
                 gamecontroller.jump = false;
@@ -76,7 +79,7 @@ public class PlayerMovement : MonoBehaviour
                 rb2d.gravityScale = defaultGravity / 9f;
             }
         }
-        else if (Input.GetButtonUp("Jump"))
+        else if (Input.GetButtonUp("Jump") || gamecontroller.grounded)
         {
             gamecontroller.floating = false;
             rb2d.gravityScale = defaultGravity;
