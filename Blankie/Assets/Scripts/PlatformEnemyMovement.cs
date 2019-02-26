@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+// Nate Trank
 public class PlatformEnemyMovement : MonoBehaviour
 {
     // script for an enemy moving back and forth on a platform
