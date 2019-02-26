@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// Nate Trank
 public class LevelSelectScript : MonoBehaviour
 {
     public GameObject levels;
@@ -10,6 +11,8 @@ public class LevelSelectScript : MonoBehaviour
 
     void Update()
     {
+        Debug.Log(options.active + " " + Input.GetKeyDown(KeyCode.Escape));
+
         if (options.active && Input.GetKeyDown(KeyCode.Escape))
         {
             options.SetActive(false);
