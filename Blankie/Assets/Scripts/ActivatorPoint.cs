@@ -5,10 +5,20 @@ using UnityEngine;
 public class ActivatorPoint : MonoBehaviour
 {
     public int ID;
+    public bool isDoorSwitch;
+    public bool isEnemySwitch;
+    public bool isCamSwitch;
+
     public bool activator;
     public GameObject linkedDoor;
+    public bool requiresKey;
 
-    public bool active;
+    public GameObject linkedEnemy;
+
+    public Cinemachine.CinemachineVirtualCamera cam1;
+    public Cinemachine.CinemachineVirtualCamera cam2;
+
+    private bool active;
 
     void Start()
     {
@@ -21,13 +31,43 @@ public class ActivatorPoint : MonoBehaviour
     //   based on whether this is deemed an activator or deactivator
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (active)
-            linkedDoor.SetActive(!activator);
+        activate(collision.gameObject.GetComponent<CharacterController2D>());
     }
 
+    // Cristian Rangel
+    //
+    // Activate the point's functionality
+    public void activate(CharacterController2D player) {
+        if (active) {
+            if (isDoorSwitch && (!requiresKey || player.hasKey)) {
+                linkedDoor.SetActive(!activator);
+            }
+            if (isEnemySwitch) {
+                linkedEnemy.SetActive(!linkedEnemy.activeSelf);
+            }
+        }
+        if (isCamSwitch) {
+            if (cam1.Priority > cam2.Priority) {
+                cam1.Priority = 10;
+                cam2.Priority = 11;
+            } else {
+                cam1.Priority = 11;
+                cam2.Priority = 10;
+            }
+        }
+    }
+
+    // Cristian Rangel
+    //
+    // Deactivate this point, and make sure the linked object is inactive
     public void deactivate()
     {
         active = false;
-        linkedDoor.SetActive(false);
+        if (isDoorSwitch) {
+            linkedDoor.SetActive(false);
+        }
+        if (isEnemySwitch) {
+            linkedEnemy.SetActive(false);
+        }
     }
 }

@@ -9,10 +9,13 @@ TagManager:
   - DeadZone
   - flag
   - Checkpoint
-  - Whip
   - HUD
   - Coin
   - Score
+  - Ground
+  - Interactable
+  - Key
+  - Activator
   layers:
   - Default
   - TransparentFX

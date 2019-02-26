@@ -15,6 +15,7 @@ public class CharacterController2D : MonoBehaviour
 	[SerializeField] private Transform m_GroundCheck;							// A position marking where to check if the player is grounded.
 	[SerializeField] private Transform m_CeilingCheck;							// A position marking where to check for ceilings
 	[SerializeField] private Collider2D m_CrouchDisableCollider;				// A collider that will be disabled when crouching
+	[SerializeField] private Collider2D m_CrouchEnableCollider;				    // A collider that will be enabled when crouching
 
 	const float k_GroundedRadius = .2f; // Radius of the overlap circle to determine if grounded
 	const float k_CeilingRadius = .2f; // Radius of the overlap circle to determine if the player can stand up
@@ -41,12 +42,14 @@ public class CharacterController2D : MonoBehaviour
     // doorIDs keeps track of opener in 0 and closer in 1
     private GameObject lastCP;
     private ActivatorPoint[] lastActivators;
+    public bool hasKey;
 
     // Blanket things: for whipping and swinging
     private LineRenderer ropeRenderer;
     private DistanceJoint2D dj;
     public float maxDist = 5f;
     [SerializeField] public LayerMask blanketMask;
+    public int attackDamage = 2;
 
     // Necessary for generating the coin upon killing an enemy
     public PickUpCoin coinPrefab;
@@ -71,6 +74,7 @@ public class CharacterController2D : MonoBehaviour
         dj.enabled = false;
 
         lastActivators = new ActivatorPoint[2];
+        hasKey = false;
     }
 
     // Chanye Jung, Isaac Hintergardt, Cristian Rangel
@@ -125,14 +129,18 @@ public class CharacterController2D : MonoBehaviour
                 xmove *= m_CrouchSpeed;
 
                 // Disable one of the colliders when crouching
-                if (m_CrouchDisableCollider != null)
+                if (m_CrouchDisableCollider != null) {
                     m_CrouchDisableCollider.enabled = false;
+                    m_CrouchEnableCollider.enabled = true;
+                }
             }
             else
             {
                 // Enable the collider when not crouching
-                if (m_CrouchDisableCollider != null)
+                if (m_CrouchDisableCollider != null) {
                     m_CrouchDisableCollider.enabled = true;
+                    m_CrouchEnableCollider.enabled = false;
+                }
 
                 if (m_wasCrouching)
                 {
@@ -219,14 +227,21 @@ public class CharacterController2D : MonoBehaviour
             HUD.GetComponent<UIKeys>().lostLife();
         } else if (collision.CompareTag("Checkpoint")) {
             lastCP = collision.gameObject;
-        } else if (collision.CompareTag("DoorActivator")) {
+        } else if (collision.CompareTag("Activator")) {
             var da = collision.gameObject.GetComponent<ActivatorPoint>();
-            if (da.activator)
+            if (da.isDoorSwitch && da.activator)
                 lastActivators[0] = da;
-            else
+            else if (da.isDoorSwitch)
                 lastActivators[1] = da;
         } else if (collision.CompareTag("Interactable")) {
             gamecontroller.climbing = true;
+        } else if (collision.CompareTag("Key")) {
+            hasKey = true;
+        } else if (collision.CompareTag("Enemy")) {
+            transform.position = lastCP.transform.position;
+            lastActivators[1].activate(this);
+            GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            HUD.GetComponent<UIKeys>().lostLife();
         }
     }
 
@@ -238,6 +253,7 @@ public class CharacterController2D : MonoBehaviour
         if (collision.gameObject.CompareTag("Enemy"))
         {
             transform.position = lastCP.transform.position;
+            lastActivators[1].activate(this);
             GetComponent<Rigidbody2D>().velocity = Vector2.zero;
             HUD.GetComponent<UIKeys>().lostLife();
         }
@@ -291,17 +307,24 @@ public class CharacterController2D : MonoBehaviour
             // Player hit chest
             else if (hit.collider.CompareTag("Interactable")) {
                 var chest = hit.collider.gameObject;
-                chest.SetActive(false);
-                createPickUp(chest.transform.position);
+                chest.GetComponent<ChestController>().wasHit();
             }
             // Player hit enemy
             else
             {
                 var enemy = hit.collider.gameObject;
-                enemy.SetActive(false);
-                createPickUp(enemy.transform.position);
-                lastActivators[0].deactivate();
-                lastActivators[1].deactivate();
+                var boss = enemy.GetComponent<BedBossController>();
+                if (boss != null) {
+                    if (boss.takeDamage(attackDamage) == 0) {
+                        lastActivators[0].deactivate();
+                        lastActivators[1].deactivate();
+                    }
+                } else {
+                    enemy.SetActive(false);
+                    createPickUp(enemy.transform.position);
+                    lastActivators[0].deactivate();
+                    lastActivators[1].deactivate();
+                }
             }
         }
         // If the player just clicked on the screen randomly
@@ -323,16 +346,22 @@ public class CharacterController2D : MonoBehaviour
                 }
                 else
                 {
-                    // Reduce line length by the correct ratio to maintain the same slope
+                    // Change line length by the correct ratio to maintain the same slope
                     float numer = ((rayPoint - pos).normalized.y) / 2;
                     float denom = ((rayPoint - pos).normalized.x) / 2;
 
-                    // While the line is too long, reduce it
-                    while (Vector3.Distance(rayPoint, pos) > maxDist)
-                    {
-                        rayPoint.y -= numer;
-                        rayPoint.x -= denom;
-                    }
+                    if (Vector3.Distance(rayPoint, pos) > maxDist)
+                        // While the line is too long, reduce it
+                        while (Vector3.Distance(rayPoint, pos) > maxDist) {
+                            rayPoint.y -= numer;
+                            rayPoint.x -= denom;
+                        }
+                    else if (Vector3.Distance(rayPoint, pos) < maxDist)
+                        // While the line is too short, enlarge it
+                        while (Vector3.Distance(rayPoint, pos) < maxDist) {
+                            rayPoint.y += numer;
+                            rayPoint.x += denom;
+                        }
                 }
                 updateRopePositions(rayPoint);
             }
