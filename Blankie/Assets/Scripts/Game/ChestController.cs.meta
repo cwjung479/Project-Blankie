@@ -1,0 +1,29 @@
+<<<<<<< Updated upstream:Blankie/Assets/Scripts/DidPressResume.cs.meta
+fileFormatVersion: 2
+<<<<<<< Updated upstream
+guid: b195b23610a0173499ad720d9afcdb40
+=======
+guid: a37f2c8fc9693d24dbe7f04c4ea7f350
+>>>>>>> Stashed changes
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+=======
+fileFormatVersion: 2
+guid: 1a62ad89c75ffd7459efd7199f371c0a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+>>>>>>> Stashed changes:Blankie/Assets/Scripts/ChestController.cs.meta
