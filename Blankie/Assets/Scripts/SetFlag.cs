@@ -9,6 +9,7 @@ public class SetFlag : MonoBehaviour
     public Sprite dreamBubble;
     public SpriteRenderer flagRenderer;
     public SpriteRenderer bubbleRenderer;
+    public TutorialManager manager;
 
     void Start()
     {
@@ -22,6 +23,7 @@ public class SetFlag : MonoBehaviour
         {
             flagRenderer.sprite = victoryFlag;
             //bubbleRenderer.sprite = dreamBubble;
+            manager.completedTutorial();
         }
     }
 }
