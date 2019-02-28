@@ -11,7 +11,6 @@ public class UIKeys : MonoBehaviour
     public Image d;
     public Image space;
     public Image left;
-    public Image right;
     private int zone;
 
     public Image h1;
@@ -38,7 +37,6 @@ public class UIKeys : MonoBehaviour
     public void lostLife()
     {
         lives--;
-        print("hello: "+lives);
         if (lives == 8)
         {
             h5.color = Color.black;
@@ -61,6 +59,32 @@ public class UIKeys : MonoBehaviour
         }
     }
 
+    public void newLife()
+    {
+        lives++;
+        if (lives == 8)
+        {
+            h5.color = Color.black;
+        }
+        else if (lives == 6)
+        {
+            h4.color = Color.black;
+        }
+        else if (lives == 4)
+        {
+            h3.color = Color.black;
+        }
+        else if (lives == 2)
+        {
+            h2.color = Color.black;
+        }
+        else if (lives == 0)
+        {
+            h1.color = Color.black;
+            motivation.text = "It's okay! Just keep trying!\n This is only the tutorial!";
+        }
+    }
+
     public void activeZone(int zone)
     {
         this.zone = zone;
@@ -76,7 +100,6 @@ public class UIKeys : MonoBehaviour
             d.color = Color.yellow;
             space.color = Color.white;
             left.color = Color.white;
-            right.color = Color.white;
         }else if (zone ==1 |zone == 2 || zone ==3)
         {
             w.color = Color.white;
@@ -85,7 +108,6 @@ public class UIKeys : MonoBehaviour
             d.color = Color.white;
             space.color = Color.yellow;
             left.color = Color.white;
-            right.color = Color.white;
         }
         else if (zone == 4)
         {
@@ -95,17 +117,6 @@ public class UIKeys : MonoBehaviour
             d.color = Color.white;
             space.color = Color.white;
             left.color = Color.white;
-            right.color = Color.white;
-        }
-        else if (zone == 5 || zone ==6)
-        {
-            w.color = Color.white;
-            a.color = Color.white;
-            s.color = Color.white;
-            d.color = Color.white;
-            space.color = Color.white;
-            left.color = Color.white;
-            right.color = Color.yellow;
         }
         else if (zone == 7 | zone == 8 || zone == 9)
         {
@@ -115,7 +126,6 @@ public class UIKeys : MonoBehaviour
             d.color = Color.white;
             space.color = Color.white;
             left.color = Color.yellow;
-            right.color = Color.white;
         }
         else
         {
@@ -125,7 +135,6 @@ public class UIKeys : MonoBehaviour
             d.color = Color.white;
             space.color = Color.white;
             left.color = Color.white;
-            right.color = Color.white;
         }
         
     }

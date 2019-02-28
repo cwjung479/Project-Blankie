@@ -58,9 +58,13 @@ public class CharacterController2D : MonoBehaviour
     // Chanye Jung, Isaac Hintergardt, Cristian Rangel
     private void Awake()
 	{
+        if (HUD == null)
+        {
+            print("UGH");
+        }
+
         gamecontroller = GameControl.instance;
 		m_Rigidbody2D = GetComponent<Rigidbody2D>();
-        HUD = GameObject.Find("HUD");
 
 
         if (OnLandEvent == null)
