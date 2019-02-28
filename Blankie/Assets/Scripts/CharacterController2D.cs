@@ -55,9 +55,13 @@ public class CharacterController2D : MonoBehaviour
     // Chanye Jung, Isaac Hintergardt, Cristian Rangel
     private void Awake()
 	{
+        if (HUD == null)
+        {
+            print("UGH");
+        }
+
         gamecontroller = GameControl.instance;
 		m_Rigidbody2D = GetComponent<Rigidbody2D>();
-        HUD = GameObject.Find("HUD");
 
 
         if (OnLandEvent == null)
@@ -300,8 +304,11 @@ public class CharacterController2D : MonoBehaviour
                 var enemy = hit.collider.gameObject;
                 enemy.SetActive(false);
                 createPickUp(enemy.transform.position);
-                lastActivators[0].deactivate();
-                lastActivators[1].deactivate();
+
+                //THese were crashing the program I'm not sure what they do what commented out
+                //the tutorial works fine -Bonita 
+                //lastActivators[0].deactivate();
+                //lastActivators[1].deactivate();
             }
         }
         // If the player just clicked on the screen randomly

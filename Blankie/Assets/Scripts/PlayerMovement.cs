@@ -24,6 +24,10 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
+        if(controller == null)
+        {
+            print("ugh");
+        }
         gamecontroller = GameControl.instance;
         anim = GetComponent<Animator>();
         rb2d = GetComponent<Rigidbody2D>();
@@ -134,11 +138,11 @@ public class PlayerMovement : MonoBehaviour
         // Move Character
         if (!gamecontroller.climbing)
         {
-            rb2d.gravityScale = defaultGravity;
+            //rb2d.gravityScale = defaultGravity;
             controller.Move(horizontalMove * Time.fixedDeltaTime, 0);
         } else
         {
-            rb2d.gravityScale = 0;
+            //rb2d.gravityScale = 0;
             controller.Move(horizontalMove * Time.fixedDeltaTime, verticalMove * Time.fixedDeltaTime);
         }
         gamecontroller.jump = false;

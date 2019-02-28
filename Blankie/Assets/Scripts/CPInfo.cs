@@ -12,6 +12,10 @@ public class CPInfo : MonoBehaviour
         //Check the provided Collider2D parameter other to see if it is tagged "PickUp", if it is...
         if (other.gameObject.CompareTag("Player"))
         {
+            if(HUD == null)
+            {
+                print("ugh");
+            }
             HUD.GetComponent<UIKeys>().activeZone(ID);
         }
 
