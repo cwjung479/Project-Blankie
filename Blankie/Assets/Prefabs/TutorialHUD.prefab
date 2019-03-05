@@ -814,22 +814,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 8775280747499829970}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ace697d2e6155e4a803e3a674287c3b, type: 3}
+  m_Script: {fileID: 11500000, guid: 1d2da4936a4240840b7c4b8d5d9b8f6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  w: {fileID: 431286182171135161}
-  a: {fileID: 1918817731439017793}
-  s: {fileID: 7395197523440492009}
-  d: {fileID: 5805263815639723140}
-  space: {fileID: 7293889336706053911}
-  left: {fileID: 2418143179268842700}
   h1: {fileID: 8775280747691937655}
   h2: {fileID: 8775280747962493579}
   h3: {fileID: 8775280748123250070}
   h4: {fileID: 8775280748434213058}
   h5: {fileID: 8775280747932163184}
   lives: 10
-  motivation: {fileID: 1215118648}
 --- !u!1 &8775280747691937652
 GameObject:
   m_ObjectHideFlags: 0

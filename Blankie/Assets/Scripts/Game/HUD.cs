@@ -13,6 +13,7 @@ public class HUD : MonoBehaviour
     public Image h4;
     public Image h5;
     public int lives = 10;
+    private int zone;
 
     // Start is called before the first frame update
     void Start()
@@ -26,22 +27,26 @@ public class HUD : MonoBehaviour
 
     }
 
+    public void activeZone(int zone) {
+        this.zone = zone;
+    }
+
     public void lostLife()
     {
         lives--;
-        if (lives == 8)
+        if (lives == 4)
         {
             h5.color = Color.black;
         }
-        else if (lives == 6)
+        else if (lives == 3)
         {
             h4.color = Color.black;
         }
-        else if (lives == 4)
+        else if (lives == 2)
         {
             h3.color = Color.black;
         }
-        else if (lives == 2)
+        else if (lives == 1)
         {
             h2.color = Color.black;
         }

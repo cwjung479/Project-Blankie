@@ -16,7 +16,7 @@ public class CPInfo : MonoBehaviour
             {
                 print("ugh");
             }
-            HUD.GetComponent<UIKeys>().activeZone(ID);
+            HUD.GetComponent<HUD>().activeZone(ID);
         }
 
     }

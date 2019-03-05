@@ -234,7 +234,7 @@ public class CharacterController2D : MonoBehaviour
         {
             transform.position = lastCP.transform.position;
             GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-            HUD.GetComponent<UIKeys>().lostLife();
+            HUD.GetComponent<HUD>().lostLife();
         } else if (collision.CompareTag("Checkpoint")) {
             lastCP = collision.gameObject;
         } else if (collision.CompareTag("Activator")) {
@@ -251,7 +251,7 @@ public class CharacterController2D : MonoBehaviour
             transform.position = lastCP.transform.position;
             lastActivators[1].activate(this);
             GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-            HUD.GetComponent<UIKeys>().lostLife();
+            HUD.GetComponent<HUD>().lostLife();
         }
     }
 
@@ -265,7 +265,7 @@ public class CharacterController2D : MonoBehaviour
             transform.position = lastCP.transform.position;
             lastActivators[1].activate(this);
             GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-            HUD.GetComponent<UIKeys>().lostLife();
+            HUD.GetComponent<HUD>().lostLife();
         }
     }
 
